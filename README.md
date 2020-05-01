@@ -2,7 +2,30 @@
 
 A Brief Demo of Using Azure Service Bus.
 
+## Settin up to run unit tests
 
+create a file in the `Blitz.Azure.ServiceBus.Library.Tests` folder called `testconfig.json`
+
+Populate it with this layout and supply your connection string for ASB in Azure that has the `Manage` role.
+
+```json
+{
+  "connectionstring": "Endpoint=sb://..."
+}
+```
+
+Right Click on the file in Visual Studio, select properties and make the file `content` and `copy always`
+
+## Run the tests
+
+
+## Desirable practices
+
+1. Make sure your queues are configured before attempting to read or write to it
+2. Make sure your writes succeed 
+3. Make sure your reads are "leased" e.g. if your unit-of-work does not complete, the item comes back on the queue e.g. require an acknoledgement of message processing
+4. Pay attention to your queue settings for your use case
+ 
 
 # About 
 
