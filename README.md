@@ -10,7 +10,7 @@ Populate it with this layout and supply your connection string for ASB in Azure 
 
 ```json
 {
-  "connectionstring": "Endpoint=sb://..."
+  "ConnectionString": "Endpoint=sb://..."
 }
 ```
 
