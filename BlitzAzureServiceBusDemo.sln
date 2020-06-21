@@ -5,13 +5,15 @@ VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{11731B71-B66F-4540-AF02-03234837508F}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blitz.Azure.ServiceBus.Library", "Blitz.Azure.ServiceBus.Library\Blitz.Azure.ServiceBus.Library.csproj", "{F3666566-755A-4C81-90BA-0B3B6599E344}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blitz.Azure.ServiceBus.Library", "Blitz.Azure.ServiceBus.Library\Blitz.Azure.ServiceBus.Library.csproj", "{F3666566-755A-4C81-90BA-0B3B6599E344}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blitz.Azure.ServiceBus.Library.Tests", "Blitz.Azure.ServiceBus.Library.Tests\Blitz.Azure.ServiceBus.Library.Tests.csproj", "{CE27E893-9CFE-48A8-AEE9-7EFC80785936}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blitz.Azure.ServiceBus.Library.Tests", "Blitz.Azure.ServiceBus.Library.Tests\Blitz.Azure.ServiceBus.Library.Tests.csproj", "{CE27E893-9CFE-48A8-AEE9-7EFC80785936}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
