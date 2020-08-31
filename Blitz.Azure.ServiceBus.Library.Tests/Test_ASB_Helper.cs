@@ -46,6 +46,36 @@ namespace Blitz.Azure.ServiceBus.Library.Tests
 
         #endregion
 
+        #region "Handlers"
+
+        private DummyModel newMessageHandler(DummyModel model, out bool isOk)
+        {
+            isOk = true;
+            logger.LogInformation($"Happy: {model}");
+            testContext.WriteLine($"Happy: {model}");
+            IsRunning = false;
+            return model;
+        }
+
+        private DummyModel unhappyMessageHandler(DummyModel model, out bool isOk)
+        {
+            isOk = false;
+            logger.LogInformation($"Unhappy: {model}");
+            testContext.WriteLine($"Unhappy: {model}");
+            IsRunning = false;
+            return model;
+        }
+
+        private string badMessageHandler(string message)
+        {
+            logger.LogInformation($"Error: {message}");
+            testContext.WriteLine($"Error: {message}");
+            IsRunning = false;
+            return message;
+        }
+
+        #endregion
+
         [TestMethod]
         public void T_Client_1()
         {
@@ -55,17 +85,24 @@ namespace Blitz.Azure.ServiceBus.Library.Tests
             var model = new Models.DummyModel();
 
             client.Enqueue(model, QueueName, model.Id);
-            client.Dequeue(QueueName, newMessageDelegate);
+            client.Dequeue(QueueName, newMessageHandler, badMessageHandler);
 
             while (IsRunning) { }
         }
 
-        private DummyModel newMessageDelegate(DummyModel model)
+        [TestMethod]
+        public void T_Client_2()
         {
-            logger.LogInformation($"{model}");
-            testContext.WriteLine($"{model}");
-            IsRunning = false;
-            return model;
+            IsRunning = true;
+            var client = new AzureServiceBusHelper<Models.DummyModel>(asbConnectionString, logger);
+
+            var model = new Models.DummyModel();
+
+            client.Enqueue(model, QueueName, model.Id);
+            client.Dequeue(QueueName, unhappyMessageHandler, badMessageHandler);
+
+            while (IsRunning) { }
         }
+
     }
 }

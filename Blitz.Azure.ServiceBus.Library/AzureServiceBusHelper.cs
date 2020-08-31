@@ -16,13 +16,16 @@ namespace Blitz.Azure.ServiceBus.Library
         private readonly string azureServiceBusConnectionString;
         private readonly ILogger logger;
 
-        public delegate T NewMessageDelegate(T model);
+        public delegate T NewMessageDelegate(T model, out bool isOk);
         public event NewMessageDelegate OnNewMessage;
+
+        public delegate string BadMessageDelegate(string message);
+        public event BadMessageDelegate OnBadMessage;
 
         /// <summary>
         /// CTOR (not allowed)
         /// </summary>
-        private AzureServiceBusHelper(string aSB_ConnectionString) { }
+        private AzureServiceBusHelper() { }
 
         /// <summary>
         /// CTOR
@@ -63,11 +66,12 @@ namespace Blitz.Azure.ServiceBus.Library
             await client.SendAsync(message);
         }
 
-        public void Dequeue(string queueName, NewMessageDelegate myMessageHandler)
+        public void Dequeue(string queueName, NewMessageDelegate goodMessageHandler, BadMessageDelegate badMessageHandler)
         {
             var client = MakeClient(queueName);
 
-            this.OnNewMessage += myMessageHandler;
+            if(goodMessageHandler != null)  this.OnNewMessage += goodMessageHandler;
+            if (badMessageHandler != null) this.OnBadMessage += badMessageHandler;
 
             var messageHandlerOptions = new MessageHandlerOptions((exceptionReceivedEventArgs) =>
             {
@@ -83,11 +87,26 @@ namespace Blitz.Azure.ServiceBus.Library
             client.RegisterMessageHandler(async (message, token) =>
             {
                 T model = default;
-                byte[] b = message.Body;
-                var json = Encoding.UTF8.GetString(b);
-                model = JsonConvert.DeserializeObject<T>(json);
-                OnNewMessage(model);
-                await client.CompleteAsync(message.SystemProperties.LockToken);
+                try
+                {
+                    byte[] b = message.Body;
+                    var json = Encoding.UTF8.GetString(b);
+                    model = JsonConvert.DeserializeObject<T>(json);
+                    OnNewMessage(model, out bool isOk);
+                    if (isOk)
+                    {
+                        await client.CompleteAsync(message.SystemProperties.LockToken);
+                    } else
+                    {
+                        await client.AbandonAsync(message.SystemProperties.LockToken);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    OnBadMessage($"Id: {message.MessageId}; CorrId: {message.CorrelationId}; Ex: {ex.Message}");
+                    await client.DeadLetterAsync(message.SystemProperties.LockToken);
+                }
+                
             }, messageHandlerOptions);
         }
 

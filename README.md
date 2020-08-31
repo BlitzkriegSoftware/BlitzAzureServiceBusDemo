@@ -18,6 +18,10 @@ Right Click on the file in Visual Studio, select properties and make the file `c
 
 ## Run the tests
 
+Three outcomes:
+* **CompleteAsync** - Message processed successfully, dequeue it for real
+* **AbandonAsync** - Unable to process the message, put it back on the queue
+* **DeadLetterAsync** - This message is hopeless, put it in the dead-letter-queue (generally malformed somehow)
 
 ## Desirable practices
 
@@ -26,16 +30,15 @@ Right Click on the file in Visual Studio, select properties and make the file `c
 3. Make sure your reads are "leased" e.g. if your unit-of-work does not complete, the item comes back on the queue e.g. require an acknoledgement of message processing
 4. Pay attention to your queue settings for your use case
  
-
 # About 
 
 Stuart Williams
 
 * Cloud/DevOps Practice Lead
- 
+ï¿½
 * Magenic Technologies Inc.
 * Office of the CTO
- 
+ï¿½
 * <a href="mailto:stuartw@magenic.com" target="_blank">stuartw@magenic.com</a> (e-mail)
 
 * Blog: <a href="https://blitzkriegsoftware.azurewebsites.net/Blog" target="_blank">http://blitzkriegsoftware.net/Blog</a> 
