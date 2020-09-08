@@ -29,19 +29,40 @@ Three outcomes:
 2. Make sure your writes succeed 
 3. Make sure your reads are "leased" e.g. if your unit-of-work does not complete, the item comes back on the queue e.g. require an acknoledgement of message processing
 4. Pay attention to your queue settings for your use case
- 
+
+## Simulating putting back messages w. a delay
+
+```cs
+OnNewMessage(model, out bool isOk);
+// Complete message
+await client.CompleteAsync(message.SystemProperties.LockToken);
+
+// If not processed ok, requeue it w. a delay
+if (!isOk) {
+    // Back-off exponentially 
+    var secondsToDelay = (int) Math.Pow(2, message.SystemProperties.DeliveryCount) + 1;
+    var ts = new TimeSpan(0, 0, secondsToDelay);
+
+    // Clone Message
+    var messageNew = MakeMessage(model, model.Id);
+
+    // Resend
+    await client.ScheduleMessageAsync(messageNew, DateTime.UtcNow.Addts));
+}
+```
+
 # About 
 
 Stuart Williams
 
 * Cloud/DevOps Practice Lead
-�
+
 * Magenic Technologies Inc.
 * Office of the CTO
-�
-* <a href="mailto:stuartw@magenic.com" target="_blank">stuartw@magenic.com</a> (e-mail)
 
-* Blog: <a href="https://blitzkriegsoftware.azurewebsites.net/Blog" target="_blank">http://blitzkriegsoftware.net/Blog</a> 
-* LinkedIn: <a href="http://lnkd.in/P35kVT" target="_blank">http://lnkd.in/P35kVT</a> 
+* [e-mail](stuartw@magenic.com)
 
-* YouTube: <a href="https://www.youtube.com/channel/UCO88zFRJMTrAZZbYzhvAlMg" target="_blank">https://www.youtube.com/channel/UCO88zFRJMTrAZZbYzhvAlMg</a> 
+* [Blog](https://blitzkriegsoftware.azurewebsites.net/Blog) 
+* [LinkedIn](http://lnkd.in/P35kVT)
+
+* [YouTube](https://www.youtube.com/user/spookdejur1962/videos)

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Blitz.Azure.ServiceBus.Library.Tests.Models
 {
-    public class DummyModel
+    public class DummyModel : IMessageProperties
     {
         public Guid Id { get; set; } = Guid.NewGuid();
 

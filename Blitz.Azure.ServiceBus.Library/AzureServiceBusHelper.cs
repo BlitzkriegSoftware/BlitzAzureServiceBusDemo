@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 
 namespace Blitz.Azure.ServiceBus.Library
 {
-    public class AzureServiceBusHelper<T> where T : new()
+    public class AzureServiceBusHelper<T> where T : IMessageProperties, new()
     {
         private readonly string azureServiceBusConnectionString;
         private readonly ILogger logger;
@@ -56,6 +56,17 @@ namespace Blitz.Azure.ServiceBus.Library
         public async void Enqueue(T model, string queueName, Guid id = default)
         {
             var client = MakeClient(queueName);
+            await EnqueueGuts(client, model, queueName, id);
+        }
+
+        private async Task EnqueueGuts(IQueueClient client, T model, string queueName, Guid id= default)
+        {
+            var message = MakeMessage(model, id);
+            await client.SendAsync(message);
+        }
+
+        private Message MakeMessage(T model, Guid id = default)
+        {
             var json = JsonConvert.SerializeObject(model);
             var b = Encoding.UTF8.GetBytes(json);
             var message = new Message(b)
@@ -63,7 +74,7 @@ namespace Blitz.Azure.ServiceBus.Library
                 ContentType = "application/json",
                 MessageId = ((id == Guid.Empty) ? Guid.NewGuid() : id).ToString()
             };
-            await client.SendAsync(message);
+            return message;
         }
 
         public void Dequeue(string queueName, NewMessageDelegate goodMessageHandler, BadMessageDelegate badMessageHandler)
@@ -93,12 +104,15 @@ namespace Blitz.Azure.ServiceBus.Library
                     var json = Encoding.UTF8.GetString(b);
                     model = JsonConvert.DeserializeObject<T>(json);
                     OnNewMessage(model, out bool isOk);
-                    if (isOk)
+                    await client.CompleteAsync(message.SystemProperties.LockToken);
+
+                    if (!isOk)
                     {
-                        await client.CompleteAsync(message.SystemProperties.LockToken);
-                    } else
-                    {
-                        await client.AbandonAsync(message.SystemProperties.LockToken);
+                        // Back-off exponentially 
+                        var secondsToDelay = (int) Math.Pow(2, message.SystemProperties.DeliveryCount) + 1;
+                        var ts = new TimeSpan(0, 0, secondsToDelay);
+                        var messageNew = MakeMessage(model, model.Id);
+                        await client.ScheduleMessageAsync(messageNew, DateTime.UtcNow.Add(ts));
                     }
                 }
                 catch (Exception ex)
